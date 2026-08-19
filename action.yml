@@ -1,4 +1,4 @@
-name: "Verum"
+name: "Verum Code Analyzer"
 description: "Run the Verum deterministic code analyzer as a CI gate."
 author: "Internet Backbone Ltd"
 branding:
