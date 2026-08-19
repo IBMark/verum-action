@@ -1,5 +1,6 @@
 # verum-action
-\n[![Marketplace](https://img.shields.io/badge/Marketplace-Verum%20Code%20Analyzer-2088FF?logo=githubactions&logoColor=white)](https://github.com/marketplace/actions/verum-code-analyzer)
+
+[![Marketplace](https://img.shields.io/badge/Marketplace-Verum%20Code%20Analyzer-2088FF?logo=githubactions&logoColor=white)](https://github.com/marketplace/actions/verum-code-analyzer)
 
 Run [Verum](https://github.com/IBMark/verum) - a deterministic, whole-program
 code analyzer - in GitHub Actions. Verum's output is a pure function of the
