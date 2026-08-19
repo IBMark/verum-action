@@ -1,0 +1,59 @@
+name: "Verum"
+description: "Run the Verum deterministic code analyzer as a CI gate."
+author: "Internet Backbone Ltd"
+branding:
+  icon: "check-circle"
+  color: "blue"
+
+inputs:
+  args:
+    description: "Arguments passed to verum (e.g. 'gate .', 'audit src')."
+    required: false
+    default: "gate ."
+  version:
+    description: "Version to install: a crates.io version like '0.1.1', or 'latest'."
+    required: false
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install and run verum
+      shell: bash
+      run: |
+        set -euo pipefail
+        VERSION="${{ inputs.version }}"
+
+        # Fast path: fetch the prebuilt binary from the GitHub release. Only
+        # x86_64 Linux is covered here; everything else takes the cargo path.
+        install_from_release() {
+          [ "$(uname -s)" = "Linux" ] && [ "$(uname -m)" = "x86_64" ] || return 1
+          local target="x86_64-unknown-linux-gnu" tag url tmp
+          if [ "$VERSION" = "latest" ]; then
+            tag="$(curl -fsSL https://api.github.com/repos/IBMark/verum/releases/latest \
+              | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)"
+          else
+            tag="v${VERSION#v}"
+          fi
+          [ -n "$tag" ] || return 1
+          url="https://github.com/IBMark/verum/releases/download/${tag}/verum-${tag}-${target}.tar.gz"
+          tmp="$(mktemp -d)"
+          curl -fsSL "$url" -o "$tmp/v.tar.gz" || return 1
+          tar -xzf "$tmp/v.tar.gz" -C "$tmp" || return 1
+          mkdir -p "$HOME/.local/bin"
+          install -m0755 "$tmp/verum" "$HOME/.local/bin/verum" || return 1
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+        }
+
+        if ! install_from_release; then
+          echo "Installing verum from crates.io..."
+          if [ "$VERSION" = "latest" ]; then
+            cargo install verum --locked
+          else
+            cargo install verum --locked --version "${VERSION#v}"
+          fi
+        fi
+
+        verum --version
+        verum ${{ inputs.args }}
